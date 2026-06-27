@@ -1,0 +1,60 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// Define the roles for authorization
+enum Role {
+  USER
+  ADMIN
+  AGENT
+}
+
+// Define the property status
+enum Status {
+  AVAILABLE
+  SOLD
+  PENDING
+  RENTED
+}
+
+model User {
+  id        String     @id @default(uuid())
+  email     String     @unique
+  name      String?
+  role      Role       @default(USER)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  // Relations: A user (agent) can have many properties
+  properties Property[]
+}
+
+model Property {
+  id          String   @id @default(uuid())
+  title       String
+  description String
+  price       Float
+  address     String
+  city        String
+  state       String
+  zipCode     String
+  bedrooms    Int
+  bathrooms   Float    // Float allows for 2.5 baths etc.
+  sqft        Int
+  images      String[] // Array of image URLs from Supabase Storage
+  status      Status   @default(AVAILABLE)
+  isFeatured  Boolean  @default(false)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relation back to the User (Agent/Admin) who created it
+  agentId     String
+  agent       User     @relation(fields: [agentId], references: [id])
+}
